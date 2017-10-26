@@ -5,6 +5,7 @@ from config import FLICKR_API_KEY
 CACHE_FNAME = 'cache_file.json'
 DEBUG = False
 
+
 def load_cache_json():
     # global CACHE_DICTION
     try:
@@ -17,6 +18,7 @@ def load_cache_json():
 
     return CACHE_DICTION
 
+
 def params_unique_combination(baseurl, params_d, private_keys=["api_key"]):
     alphabetized_keys = sorted(params_d.keys())
     res = []
@@ -25,33 +27,36 @@ def params_unique_combination(baseurl, params_d, private_keys=["api_key"]):
             res.append("{}-{}".format(k, params_d[k]))
     return baseurl + "_".join(res)
 
-def search_flickr_by_tags(tags):
+
+def search_flickr(module, adInfo):
     if not FLICKR_API_KEY:
         raise Exception('Flickr API Key is missing!')
 
     baseurl = "https://api.flickr.com/services/rest/"
     params_diction = {
-        "method": "flickr.photos.search",
         "format": "json",
         "api_key": FLICKR_API_KEY,
-        "tags": tags,
-        "per_page": 10,
-        "nojsoncallback": 1
+        "nojsoncallback": 1,
+        "method": "flickr." + module,
     }
 
-    unique_ident = params_unique_combination(baseurl,params_diction)
+    params_diction.update(adInfo)
+
+    unique_ident = params_unique_combination(baseurl, params_diction)
     if unique_ident in CACHE_DICTION:
         return CACHE_DICTION[unique_ident]
     else:
         resp = requests.get(baseurl, params_diction)
         CACHE_DICTION[unique_ident] = json.loads(resp.text)
         dumped_json_cache = json.dumps(CACHE_DICTION)
-        fw = open(CACHE_FNAME,"w")
+        fw = open(CACHE_FNAME, "w")
         fw.write(dumped_json_cache)
-        fw.close() # Close the open file
+        fw.close()  # Close the open file
         return CACHE_DICTION[unique_ident]
 
+
 class Photo:
+
     def __init__(self, photo_dict):
         self.title = photo_dict['title']
         self.id = photo_dict['id']
@@ -65,7 +70,11 @@ CACHE_DICTION = load_cache_json()
 if DEBUG:
     print(CACHE_DICTION)
 
-results = search_flickr_by_tags('sunset summer')
+adDict = {
+    "tags": 'sunset summer',
+    "per_page": 10
+}
+results = search_flickr('photos.search', adDict)
 
 photos_list = []
 for r in results['photos']['photo']:
