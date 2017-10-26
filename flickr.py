@@ -74,6 +74,7 @@ adDict = {
     "tags": 'sunset summer',
     "per_page": 10
 }
+print("Hello World!")
 results = search_flickr('photos.search', adDict)
 
 photos_list = []
